@@ -1,0 +1,163 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { UsersResolver } from './users.resolver';
+import { UsersService } from './users.service';
+import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '../auth/auth.guard';
+
+// Create a mock AuthGuard
+const mockAuthGuard = jest.fn().mockImplementation(() => ({
+  canActivate: jest.fn().mockReturnValue(true),
+}));
+
+describe('UsersResolver', () => {
+  let resolver: UsersResolver;
+  let usersService: UsersService;
+
+  const mockUsersService = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+  };
+
+  const mockJwtService = {
+    sign: jest.fn(),
+    signAsync: jest.fn(),
+    verify: jest.fn(),
+    verifyAsync: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UsersResolver,
+        {
+          provide: UsersService,
+          useValue: mockUsersService,
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+      ],
+    })
+      .overrideGuard(AuthGuard)
+      .useValue(mockAuthGuard())
+      .compile();
+
+    resolver = module.get<UsersResolver>(UsersResolver);
+    usersService = module.get<UsersService>(UsersService);
+  });
+
+  it('should be defined', () => {
+    expect(resolver).toBeDefined();
+  });
+
+  describe('createUser', () => {
+    it('should create a new user', async () => {
+      const createUserInput = {
+        username: 'testuser',
+        password: 'testpass',
+      };
+
+      const expectedUser = {
+        id: 1,
+        username: 'testuser',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockUsersService.create.mockResolvedValue(expectedUser);
+
+      const result = await resolver.createUser(createUserInput);
+      expect(result).toEqual(expectedUser);
+      expect(mockUsersService.create).toHaveBeenCalledWith(createUserInput);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return an array of users', async () => {
+      const expectedUsers = [
+        {
+          id: 1,
+          username: 'user1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 2,
+          username: 'user2',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockUsersService.findAll.mockResolvedValue(expectedUsers);
+
+      const result = await resolver.findAll();
+      expect(result).toEqual(expectedUsers);
+      expect(mockUsersService.findAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a single user', async () => {
+      const userId = 1;
+      const expectedUser = {
+        id: userId,
+        username: 'testuser',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockUsersService.findById.mockResolvedValue(expectedUser);
+
+      const result = await resolver.findOne(userId);
+      expect(result).toEqual(expectedUser);
+      expect(mockUsersService.findById).toHaveBeenCalledWith(userId);
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update a user', async () => {
+      const updateUserInput = {
+        id: 1,
+        username: 'updateduser',
+      };
+
+      const expectedUser = {
+        ...updateUserInput,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockUsersService.update.mockResolvedValue(expectedUser);
+
+      const result = await resolver.updateUser(updateUserInput);
+      expect(result).toEqual(expectedUser);
+      expect(mockUsersService.update).toHaveBeenCalledWith(
+        updateUserInput.id,
+        updateUserInput,
+      );
+    });
+  });
+
+  describe('removeUser', () => {
+    it('should remove a user', async () => {
+      const userId = 1;
+      const expectedUser = {
+        id: userId,
+        username: 'testuser',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockUsersService.remove.mockResolvedValue(expectedUser);
+
+      const result = await resolver.removeUser(userId);
+      expect(result).toEqual(expectedUser);
+      expect(mockUsersService.remove).toHaveBeenCalledWith(userId);
+    });
+  });
+}); 

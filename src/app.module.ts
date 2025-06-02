@@ -12,13 +12,14 @@ import { UsersModule } from './users/users.module';
 import { BooksModule } from './books/books.module';
 import { Book } from './books/entities/book.entity';
 import { join } from 'path';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'test.db',
-      entities: [Book],
+      entities: [Book, User],
       synchronize: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({

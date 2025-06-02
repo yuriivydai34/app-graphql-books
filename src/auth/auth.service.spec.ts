@@ -3,6 +3,11 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -35,6 +40,9 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
     jwtService = module.get<JwtService>(JwtService);
+
+    // Clear all mocks before each test
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -44,53 +52,55 @@ describe('AuthService', () => {
   describe('signIn', () => {
     it('should return access token when credentials are valid', async () => {
       const mockUser = {
-        userId: 1,
+        id: 1,
         username: 'testuser',
-        password: 'testpass',
+        password: 'hashedPassword',
       };
 
-      const expectedToken = 'test-jwt-token';
+      const expectedToken = 'jwt-token';
+      const expectedPayload = {
+        sub: mockUser.id,
+        username: mockUser.username,
+      };
 
       mockUsersService.findOne.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockJwtService.signAsync.mockResolvedValue(expectedToken);
 
-      const result = await service.signIn('testuser', 'testpass');
+      const result = await service.signIn('testuser', 'correctpassword');
 
-      expect(result).toEqual({
-        access_token: expectedToken,
-      });
-
+      expect(result).toEqual({ access_token: expectedToken });
       expect(mockUsersService.findOne).toHaveBeenCalledWith('testuser');
-      expect(mockJwtService.signAsync).toHaveBeenCalledWith({
-        sub: mockUser.userId,
-        username: mockUser.username,
-      });
+      expect(bcrypt.compare).toHaveBeenCalledWith('correctpassword', mockUser.password);
+      expect(mockJwtService.signAsync).toHaveBeenCalledWith(expectedPayload);
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
       mockUsersService.findOne.mockResolvedValue(null);
 
-      await expect(service.signIn('wronguser', 'wrongpass')).rejects.toThrow(
+      await expect(service.signIn('wronguser', 'anypassword')).rejects.toThrow(
         UnauthorizedException,
       );
-
       expect(mockUsersService.findOne).toHaveBeenCalledWith('wronguser');
+      expect(bcrypt.compare).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when password is incorrect', async () => {
       const mockUser = {
-        userId: 1,
+        id: 1,
         username: 'testuser',
-        password: 'correctpass',
+        password: 'hashedPassword',
       };
 
       mockUsersService.findOne.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.signIn('testuser', 'wrongpass')).rejects.toThrow(
+      await expect(service.signIn('testuser', 'wrongpassword')).rejects.toThrow(
         UnauthorizedException,
       );
-
       expect(mockUsersService.findOne).toHaveBeenCalledWith('testuser');
+      expect(bcrypt.compare).toHaveBeenCalledWith('wrongpassword', mockUser.password);
+      expect(mockJwtService.signAsync).not.toHaveBeenCalled();
     });
   });
 });

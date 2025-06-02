@@ -3,6 +3,12 @@ import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { AuthGuard } from './auth.guard';
+
+// Create a mock AuthGuard
+const mockAuthGuard = jest.fn().mockImplementation(() => ({
+  canActivate: jest.fn().mockReturnValue(true),
+}));
 
 describe('AuthResolver', () => {
   let resolver: AuthResolver;
@@ -10,6 +16,13 @@ describe('AuthResolver', () => {
 
   const mockAuthService = {
     signIn: jest.fn(),
+  };
+
+  const mockJwtService = {
+    sign: jest.fn(),
+    signAsync: jest.fn(),
+    verify: jest.fn(),
+    verifyAsync: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -22,9 +35,7 @@ describe('AuthResolver', () => {
         },
         {
           provide: JwtService,
-          useValue: {
-            signAsync: jest.fn(),
-          },
+          useValue: mockJwtService,
         },
         {
           provide: UsersService,
@@ -33,7 +44,10 @@ describe('AuthResolver', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useValue(mockAuthGuard())
+      .compile();
 
     resolver = module.get<AuthResolver>(AuthResolver);
     authService = module.get<AuthService>(AuthService);
