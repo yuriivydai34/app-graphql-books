@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BooksResolver } from './books.resolver';
 import { BooksService } from './books.service';
+import { Types } from 'mongoose';
 
 describe('BooksResolver', () => {
   let resolver: BooksResolver;
@@ -41,8 +42,9 @@ describe('BooksResolver', () => {
       };
 
       const expectedBook = {
-        id: 1,
-        ...createBookInput,
+        _id: new Types.ObjectId().toString(),
+        title: 'Test Book',
+        author: 'Test Author',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -59,16 +61,16 @@ describe('BooksResolver', () => {
     it('should return an array of books', async () => {
       const expectedBooks = [
         {
-          id: 1,
-          title: 'Test Book 1',
-          author: 'Test Author 1',
+          _id: new Types.ObjectId().toString(),
+          title: 'Book 1',
+          author: 'Author 1',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          id: 2,
-          title: 'Test Book 2',
-          author: 'Test Author 2',
+          _id: new Types.ObjectId().toString(),
+          title: 'Book 2',
+          author: 'Author 2',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -84,9 +86,9 @@ describe('BooksResolver', () => {
 
   describe('findOne', () => {
     it('should return a single book', async () => {
-      const bookId = 1;
+      const bookId = new Types.ObjectId().toString();
       const expectedBook = {
-        id: bookId,
+        _id: bookId,
         title: 'Test Book',
         author: 'Test Author',
         createdAt: new Date(),
@@ -103,13 +105,15 @@ describe('BooksResolver', () => {
 
   describe('updateBook', () => {
     it('should update a book', async () => {
+      const bookId = new Types.ObjectId().toString();
       const updateBookInput = {
-        id: 1,
+        id: bookId,
         title: 'Updated Book',
         author: 'Updated Author',
       };
 
       const expectedBook = {
+        _id: bookId,
         ...updateBookInput,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -128,9 +132,9 @@ describe('BooksResolver', () => {
 
   describe('removeBook', () => {
     it('should remove a book', async () => {
-      const bookId = 1;
+      const bookId = new Types.ObjectId().toString();
       const expectedBook = {
-        id: bookId,
+        _id: bookId,
         title: 'Test Book',
         author: 'Test Author',
         createdAt: new Date(),

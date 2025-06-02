@@ -1,34 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BooksService } from './books.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Book } from './entities/book.entity';
-import { Repository } from 'typeorm';
+import { getModelToken } from '@nestjs/mongoose';
+import { Book } from './schemas/book.schema';
+import { Model } from 'mongoose';
+import { TestDbModule } from '../test/test-db.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { BookSchema } from './schemas/book.schema';
+import { NotFoundException } from '@nestjs/common';
 
 describe('BooksService', () => {
   let service: BooksService;
-  let repository: Repository<Book>;
-
-  const mockRepository = {
-    save: jest.fn(),
-    find: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  };
+  let model: Model<Book>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        BooksService,
-        {
-          provide: getRepositoryToken(Book),
-          useValue: mockRepository,
-        },
+      imports: [
+        TestDbModule,
+        MongooseModule.forFeature([{ name: Book.name, schema: BookSchema }])
       ],
+      providers: [BooksService],
     }).compile();
 
     service = module.get<BooksService>(BooksService);
-    repository = module.get<Repository<Book>>(getRepositoryToken(Book));
+    model = module.get<Model<Book>>(getModelToken(Book.name));
+
+    // Clear the database before each test
+    await model.deleteMany({});
+  });
+
+  afterEach(async () => {
+    // Clean up after each test
+    await model.deleteMany({});
   });
 
   it('should be defined', () => {
@@ -36,99 +38,109 @@ describe('BooksService', () => {
   });
 
   describe('create', () => {
-    it('should create a new book', async () => {
+    it('should create a book', async () => {
       const createBookDto = {
         title: 'Test Book',
         author: 'Test Author',
       };
 
-      const expectedBook = {
-        id: 1,
-        ...createBookDto,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const book = await service.create(createBookDto);
 
-      mockRepository.save.mockResolvedValue(expectedBook);
-
-      const result = await service.create(createBookDto);
-      expect(result).toEqual(expectedBook);
-      expect(mockRepository.save).toHaveBeenCalledWith(createBookDto);
+      expect(book.title).toBe(createBookDto.title);
+      expect(book.author).toBe(createBookDto.author);
+      expect(book._id).toBeDefined();
     });
   });
 
   describe('findAll', () => {
     it('should return an array of books', async () => {
-      const expectedBooks = [
-        {
-          id: 1,
-          title: 'Test Book 1',
-          author: 'Test Author 1',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          id: 2,
-          title: 'Test Book 2',
-          author: 'Test Author 2',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+      const books = [
+        { title: 'Book 1', author: 'Author 1' },
+        { title: 'Book 2', author: 'Author 2' },
       ];
 
-      mockRepository.find.mockResolvedValue(expectedBooks);
+      const savedBooks = await model.create(books);
+      expect(savedBooks).toBeDefined();
 
       const result = await service.findAll();
-      expect(result).toEqual(expectedBooks);
-      expect(mockRepository.find).toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+      expect(result[0].title).toBe('Book 1');
+      expect(result[1].title).toBe('Book 2');
     });
   });
 
   describe('findOne', () => {
-    it('should return a single book', async () => {
-      const bookId = 1;
-      const expectedBook = {
-        id: bookId,
+    it('should find a book by id', async () => {
+      const book = await model.create({
         title: 'Test Book',
         author: 'Test Author',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockRepository.findOne.mockResolvedValue(expectedBook);
-
-      const result = await service.findOne(bookId);
-      expect(result).toEqual(expectedBook);
-      expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: bookId },
       });
+
+      const found = await service.findOne(book._id.toString());
+      expect(found).toBeDefined();
+      if (!found) throw new Error('Book should be found');
+      
+      expect(found.title).toBe(book.title);
+      expect(found._id.toString()).toBe(book._id.toString());
+    });
+
+    it('should throw NotFoundException when book not found', async () => {
+      await expect(service.findOne('000000000000000000000000')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
     it('should update a book', async () => {
-      const bookId = 1;
+      const book = await model.create({
+        title: 'Old Title',
+        author: 'Old Author',
+      });
+
       const updateBookDto = {
-        id: bookId,
-        title: 'Updated Book',
-        author: 'Updated Author',
+        id: book._id.toString(),
+        title: 'New Title',
+        author: 'New Author',
       };
 
-      mockRepository.update.mockResolvedValue({ affected: 1 });
+      const updated = await service.update(book._id.toString(), updateBookDto);
+      expect(updated).toBeDefined();
+      if (!updated) throw new Error('Updated book should be defined');
 
-      await service.update(bookId, updateBookDto);
-      expect(mockRepository.update).toHaveBeenCalledWith(bookId, updateBookDto);
+      expect(updated.title).toBe('New Title');
+      expect(updated.author).toBe('New Author');
+    });
+
+    it('should throw NotFoundException when book not found', async () => {
+      await expect(
+        service.update('000000000000000000000000', {
+          id: '000000000000000000000000',
+          title: 'New Title',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
     it('should remove a book', async () => {
-      const bookId = 1;
+      const book = await model.create({
+        title: 'Test Book',
+        author: 'Test Author',
+      });
 
-      mockRepository.delete.mockResolvedValue({ affected: 1 });
+      const removed = await service.remove(book._id.toString());
+      expect(removed).toBeDefined();
+      if (!removed) throw new Error('Removed book should be defined');
 
-      await service.remove(bookId);
-      expect(mockRepository.delete).toHaveBeenCalledWith(bookId);
+      expect(removed._id.toString()).toBe(book._id.toString());
+
+      const found = await model.findById(book._id);
+      expect(found).toBeNull();
+    });
+
+    it('should throw NotFoundException when book not found', async () => {
+      await expect(
+        service.remove('000000000000000000000000'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

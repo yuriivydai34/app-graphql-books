@@ -3,6 +3,7 @@ import { UsersResolver } from './users.resolver';
 import { UsersService } from './users.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '../auth/auth.guard';
+import { Types } from 'mongoose';
 
 // Create a mock AuthGuard
 const mockAuthGuard = jest.fn().mockImplementation(() => ({
@@ -62,7 +63,7 @@ describe('UsersResolver', () => {
       };
 
       const expectedUser = {
-        id: 1,
+        _id: new Types.ObjectId().toString(),
         username: 'testuser',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -80,13 +81,13 @@ describe('UsersResolver', () => {
     it('should return an array of users', async () => {
       const expectedUsers = [
         {
-          id: 1,
+          _id: new Types.ObjectId().toString(),
           username: 'user1',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          id: 2,
+          _id: new Types.ObjectId().toString(),
           username: 'user2',
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -103,9 +104,9 @@ describe('UsersResolver', () => {
 
   describe('findOne', () => {
     it('should return a single user', async () => {
-      const userId = 1;
+      const userId = new Types.ObjectId().toString();
       const expectedUser = {
-        id: userId,
+        _id: userId,
         username: 'testuser',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -121,12 +122,14 @@ describe('UsersResolver', () => {
 
   describe('updateUser', () => {
     it('should update a user', async () => {
+      const userId = new Types.ObjectId().toString();
       const updateUserInput = {
-        id: 1,
+        id: userId,
         username: 'updateduser',
       };
 
       const expectedUser = {
+        _id: userId,
         ...updateUserInput,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -145,9 +148,9 @@ describe('UsersResolver', () => {
 
   describe('removeUser', () => {
     it('should remove a user', async () => {
-      const userId = 1;
+      const userId = new Types.ObjectId().toString();
       const expectedUser = {
-        id: userId,
+        _id: userId,
         username: 'testuser',
         createdAt: new Date(),
         updatedAt: new Date(),
