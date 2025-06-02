@@ -2,26 +2,18 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BooksModule } from './books/books.module';
-import { Book } from './books/entities/book.entity';
 import { join } from 'path';
-import { User } from './users/entities/user.entity';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'test.db',
-      entities: [Book, User],
-      synchronize: true,
-    }),
+    MongooseModule.forRoot('mongodb://user1:pwd123@192.168.0.234:27017/mydb1'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       graphiql: true,

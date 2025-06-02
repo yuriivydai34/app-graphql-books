@@ -56,17 +56,17 @@ type Mutation {
   createBook(createBookInput: CreateBookInput!): Book!
   createUser(createUserInput: CreateUserInput!): User!
   login(loginInput: LoginInput!): LoginResponse!
-  removeBook(id: Int!): Book!
-  removeUser(id: Int!): User!
+  removeBook(id: ID!): Book!
+  removeUser(id: ID!): User!
   updateBook(updateBookInput: UpdateBookInput!): Book!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Query {
-  book(id: Int!): Book!
+  book(id: ID!): Book!
   books: [Book!]!
   profile: UserProfile!
-  user(id: Int!): User!
+  user(id: ID!): User!
   users: [User!]!
 }
 
@@ -75,7 +75,7 @@ input UpdateBookInput {
   author: String
 
   """ID of the book to update"""
-  id: Int!
+  id: ID!
 
   """The title of the book to create"""
   title: String
@@ -83,7 +83,7 @@ input UpdateBookInput {
 
 input UpdateUserInput {
   """ID of the user account to update"""
-  id: Int!
+  id: ID!
 
   """Password for the new account (minimum 6 characters)"""
   password: String

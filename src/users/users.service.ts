@@ -1,40 +1,37 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import * as bcrypt from 'bcrypt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
     const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
-    const user = this.usersRepository.create({
+    const createdUser = new this.userModel({
       ...createUserInput,
       password: hashedPassword,
     });
-    return this.usersRepository.save(user);
+    return createdUser.save();
   }
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
   }
 
-  findOne(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+  async findOne(username: string): Promise<User | null> {
+    return this.userModel.findOne({ username }).exec();
   }
 
-  findById(id: number): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+  async findById(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
   }
 
-  async update(id: number, updateUserInput: UpdateUserInput): Promise<User> {
+  async update(id: string, updateUserInput: UpdateUserInput): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -43,20 +40,26 @@ export class UsersService {
     if (updateUserInput.password) {
       updateUserInput.password = await bcrypt.hash(updateUserInput.password, 10);
     }
-    await this.usersRepository.update(id, updateUserInput);
-    const updatedUser = await this.findById(id);
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        { ...updateUserInput },
+        { new: true }
+      )
+      .exec();
+
     if (!updatedUser) {
       throw new NotFoundException(`User with ID ${id} not found after update`);
     }
     return updatedUser;
   }
 
-  async remove(id: number): Promise<User> {
-    const user = await this.findById(id);
-    if (!user) {
+  async remove(id: string): Promise<User> {
+    const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
+    if (!deletedUser) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    await this.usersRepository.delete(id);
-    return user;
+    return deletedUser;
   }
 }
