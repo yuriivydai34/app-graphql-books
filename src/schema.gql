@@ -32,8 +32,18 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input LoginInput {
+  password: String!
+  username: String!
+}
+
+type LoginResponse {
+  access_token: String!
+}
+
 type Mutation {
   createBook(createBookInput: CreateBookInput!): Book!
+  login(loginInput: LoginInput!): LoginResponse!
   removeBook(id: Int!): Book!
   updateBook(updateBookInput: UpdateBookInput!): Book!
 }
@@ -41,6 +51,7 @@ type Mutation {
 type Query {
   book(id: Int!): Book!
   books: [Book!]!
+  profile: UserProfile!
 }
 
 input UpdateBookInput {
@@ -50,4 +61,9 @@ input UpdateBookInput {
 
   """Example field (placeholder)"""
   title: String
+}
+
+type UserProfile {
+  sub: Int!
+  username: String!
 }
