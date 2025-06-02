@@ -3,14 +3,14 @@
 # ------------------------------------------------------
 
 type Book {
+  """Unique identifier for the book"""
+  _id: ID!
+
   """The author of the book"""
   author: String!
 
   """Timestamp of when the book was added to the system"""
   createdAt: DateTime!
-
-  """Unique identifier for the book"""
-  id: Int!
 
   """The title of the book"""
   title: String!
@@ -93,11 +93,11 @@ input UpdateUserInput {
 }
 
 type User {
+  """Unique identifier for the user"""
+  _id: ID!
+
   """Timestamp of when the user account was created"""
   createdAt: DateTime!
-
-  """Unique identifier for the user"""
-  id: Int!
 
   """Timestamp of when the user account was last updated"""
   updatedAt: DateTime!

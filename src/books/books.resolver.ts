@@ -1,6 +1,6 @@
-import { Resolver, Query, Mutation, Args, Int, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { BooksService } from './books.service';
-import { Book } from './entities/book.entity';
+import { Book } from './schemas/book.schema';
 import { CreateBookInput } from './dto/create-book.input';
 import { UpdateBookInput } from './dto/update-book.input';
 
