@@ -1,0 +1,53 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Book {
+  """Example field (placeholder)"""
+  author: String!
+
+  """Example field (placeholder)"""
+  createdAt: DateTime!
+
+  """Example field (placeholder)"""
+  id: Int!
+
+  """Example field (placeholder)"""
+  title: String!
+
+  """Example field (placeholder)"""
+  updatedAt: DateTime!
+}
+
+input CreateBookInput {
+  """Example field (placeholder)"""
+  author: String!
+
+  """Example field (placeholder)"""
+  title: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createBook(createBookInput: CreateBookInput!): Book!
+  removeBook(id: Int!): Book!
+  updateBook(updateBookInput: UpdateBookInput!): Book!
+}
+
+type Query {
+  book(id: Int!): Book!
+  books: [Book!]!
+}
+
+input UpdateBookInput {
+  """Example field (placeholder)"""
+  author: String
+  id: Int!
+
+  """Example field (placeholder)"""
+  title: String
+}
