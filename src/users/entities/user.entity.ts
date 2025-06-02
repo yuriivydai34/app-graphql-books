@@ -5,21 +5,21 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 @ObjectType()
 export class User {
   @PrimaryGeneratedColumn()
-  @Field(() => Int)
+  @Field(() => Int, { description: 'Unique identifier for the user' })
   id: number;
 
   @Column({ unique: true })
-  @Field(() => String)
+  @Field(() => String, { description: 'Unique username for the user account' })
   username: string;
 
   @Column()
   password: string;
 
   @CreateDateColumn()
-  @Field(() => Date)
+  @Field(() => Date, { description: 'Timestamp of when the user account was created' })
   createdAt: Date;
 
   @UpdateDateColumn()
-  @Field(() => Date)
+  @Field(() => Date, { description: 'Timestamp of when the user account was last updated' })
   updatedAt: Date;
 } 

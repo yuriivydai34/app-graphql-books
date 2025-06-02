@@ -5,22 +5,22 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 @ObjectType()
 export class Book {
   @PrimaryGeneratedColumn()
-  @Field(() => Int, { description: 'Example field (placeholder)' })
+  @Field(() => Int, { description: 'Unique identifier for the book' })
   id: number;
 
   @Column()
-  @Field(() => String, { description: 'Example field (placeholder)' })
+  @Field(() => String, { description: 'The title of the book' })
   title: string;
 
   @Column()
-  @Field(() => String, { description: 'Example field (placeholder)' })
+  @Field(() => String, { description: 'The author of the book' })
   author: string;
 
   @CreateDateColumn()
-  @Field(() => Date, { description: 'Example field (placeholder)' })
+  @Field(() => Date, { description: 'Timestamp of when the book was added to the system' })
   createdAt: Date;
 
   @UpdateDateColumn()
-  @Field(() => Date, { description: 'Example field (placeholder)' })
+  @Field(() => Date, { description: 'Timestamp of when the book was last updated' })
   updatedAt: Date;
 }

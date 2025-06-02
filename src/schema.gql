@@ -3,32 +3,35 @@
 # ------------------------------------------------------
 
 type Book {
-  """Example field (placeholder)"""
+  """The author of the book"""
   author: String!
 
-  """Example field (placeholder)"""
+  """Timestamp of when the book was added to the system"""
   createdAt: DateTime!
 
-  """Example field (placeholder)"""
+  """Unique identifier for the book"""
   id: Int!
 
-  """Example field (placeholder)"""
+  """The title of the book"""
   title: String!
 
-  """Example field (placeholder)"""
+  """Timestamp of when the book was last updated"""
   updatedAt: DateTime!
 }
 
 input CreateBookInput {
-  """Example field (placeholder)"""
+  """The author of the book to create"""
   author: String!
 
-  """Example field (placeholder)"""
+  """The title of the book to create"""
   title: String!
 }
 
 input CreateUserInput {
+  """Password for the new account (minimum 6 characters)"""
   password: String!
+
+  """Username for the new account (minimum 4 characters)"""
   username: String!
 }
 
@@ -38,7 +41,10 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 input LoginInput {
+  """Password of the account to login with"""
   password: String!
+
+  """Username of the account to login with"""
   username: String!
 }
 
@@ -65,24 +71,38 @@ type Query {
 }
 
 input UpdateBookInput {
-  """Example field (placeholder)"""
+  """The author of the book to create"""
   author: String
+
+  """ID of the book to update"""
   id: Int!
 
-  """Example field (placeholder)"""
+  """The title of the book to create"""
   title: String
 }
 
 input UpdateUserInput {
+  """ID of the user account to update"""
   id: Int!
+
+  """Password for the new account (minimum 6 characters)"""
   password: String
+
+  """Username for the new account (minimum 4 characters)"""
   username: String
 }
 
 type User {
+  """Timestamp of when the user account was created"""
   createdAt: DateTime!
+
+  """Unique identifier for the user"""
   id: Int!
+
+  """Timestamp of when the user account was last updated"""
   updatedAt: DateTime!
+
+  """Unique username for the user account"""
   username: String!
 }
 
