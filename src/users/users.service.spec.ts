@@ -7,7 +7,8 @@ import { TestDbModule } from '../test/test-db.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { CaslModule } from '../casl/casl.module';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockImplementation((str) => Promise.resolve(`hashed_${str}`)),
@@ -17,11 +18,22 @@ describe('UsersService', () => {
   let service: UsersService;
   let model: Model<User>;
 
+  const mockAdminUser = {
+    id: '1',
+    isAdmin: true,
+  } as User;
+
+  const mockRegularUser = {
+    id: '2',
+    isAdmin: false,
+  } as User;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TestDbModule,
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        CaslModule
       ],
       providers: [UsersService],
     }).compile();
@@ -118,7 +130,7 @@ describe('UsersService', () => {
   });
 
   describe('update', () => {
-    it('should update a user', async () => {
+    it('should update a user when admin', async () => {
       const user = await model.create({
         username: 'oldusername',
         password: 'hashed_oldpass',
@@ -130,7 +142,7 @@ describe('UsersService', () => {
         password: 'newpass',
       };
 
-      const updated = await service.update(user._id.toString(), updateUserDto);
+      const updated = await service.update(user._id.toString(), updateUserDto, mockAdminUser);
       expect(updated).toBeDefined();
       if (!updated) throw new Error('Updated user should be defined');
 
@@ -139,12 +151,28 @@ describe('UsersService', () => {
       expect(bcrypt.hash).toHaveBeenCalledWith('newpass', 10);
     });
 
-    it('should throw NotFoundException if user not found', async () => {
+    it('should throw ForbiddenException when non-admin tries to update', async () => {
+      const user = await model.create({
+        username: 'testuser',
+        password: 'hashed_testpass',
+      });
+
+      const updateUserDto = {
+        id: user._id.toString(),
+        username: 'newusername',
+      };
+
+      await expect(
+        service.update(user._id.toString(), updateUserDto, mockRegularUser)
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw NotFoundException when user not found', async () => {
       await expect(
         service.update('000000000000000000000000', {
           id: '000000000000000000000000',
           username: 'test',
-        }),
+        }, mockAdminUser),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -166,7 +194,7 @@ describe('UsersService', () => {
       expect(found).toBeNull();
     });
 
-    it('should throw NotFoundException if user not found', async () => {
+    it('should throw NotFoundException when user not found', async () => {
       await expect(
         service.remove('000000000000000000000000'),
       ).rejects.toThrow(NotFoundException);

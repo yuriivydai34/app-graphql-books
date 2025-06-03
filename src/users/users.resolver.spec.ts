@@ -29,6 +29,15 @@ describe('UsersResolver', () => {
     verifyAsync: jest.fn(),
   };
 
+  const mockContext = {
+    req: {
+      user: {
+        id: '1',
+        isAdmin: true,
+      }
+    }
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -65,8 +74,10 @@ describe('UsersResolver', () => {
       const expectedUser = {
         _id: new Types.ObjectId().toString(),
         username: 'testuser',
+        password: 'hashedpass',
         createdAt: new Date(),
         updatedAt: new Date(),
+        isAdmin: false,
       };
 
       mockUsersService.create.mockResolvedValue(expectedUser);
@@ -83,14 +94,18 @@ describe('UsersResolver', () => {
         {
           _id: new Types.ObjectId().toString(),
           username: 'user1',
+          password: 'hashedpass1',
           createdAt: new Date(),
           updatedAt: new Date(),
+          isAdmin: false,
         },
         {
           _id: new Types.ObjectId().toString(),
           username: 'user2',
+          password: 'hashedpass2',
           createdAt: new Date(),
           updatedAt: new Date(),
+          isAdmin: false,
         },
       ];
 
@@ -108,8 +123,10 @@ describe('UsersResolver', () => {
       const expectedUser = {
         _id: userId,
         username: 'testuser',
+        password: 'hashedpass',
         createdAt: new Date(),
         updatedAt: new Date(),
+        isAdmin: false,
       };
 
       mockUsersService.findById.mockResolvedValue(expectedUser);
@@ -130,18 +147,21 @@ describe('UsersResolver', () => {
 
       const expectedUser = {
         _id: userId,
-        ...updateUserInput,
+        username: 'updateduser',
+        password: 'hashedpass',
         createdAt: new Date(),
         updatedAt: new Date(),
+        isAdmin: false,
       };
 
       mockUsersService.update.mockResolvedValue(expectedUser);
 
-      const result = await resolver.updateUser(updateUserInput);
+      const result = await resolver.updateUser(updateUserInput, mockContext.req);
       expect(result).toEqual(expectedUser);
       expect(mockUsersService.update).toHaveBeenCalledWith(
         updateUserInput.id,
         updateUserInput,
+        mockContext.req.user,
       );
     });
   });
@@ -152,8 +172,10 @@ describe('UsersResolver', () => {
       const expectedUser = {
         _id: userId,
         username: 'testuser',
+        password: 'hashedpass',
         createdAt: new Date(),
         updatedAt: new Date(),
+        isAdmin: false,
       };
 
       mockUsersService.remove.mockResolvedValue(expectedUser);
