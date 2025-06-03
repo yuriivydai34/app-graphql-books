@@ -29,6 +29,9 @@ input CreateBookInput {
   """The author of the book to create"""
   author: String!
 
+  """The ID of the user who authored the book"""
+  authorId: String!
+
   """The title of the book to create"""
   title: String!
 }
@@ -79,6 +82,9 @@ type Query {
 input UpdateBookInput {
   """The author of the book to create"""
   author: String
+
+  """The ID of the user who authored the book"""
+  authorId: String
 
   """ID of the book to update"""
   id: ID!

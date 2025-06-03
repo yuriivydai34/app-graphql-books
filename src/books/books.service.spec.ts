@@ -7,16 +7,23 @@ import { TestDbModule } from '../test/test-db.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BookSchema } from './schemas/book.schema';
 import { NotFoundException } from '@nestjs/common';
+import { CaslModule } from '../casl/casl.module';
 
 describe('BooksService', () => {
   let service: BooksService;
   let model: Model<Book>;
 
+  const mockAdminUser = {
+    id: '1',
+    isAdmin: true,
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TestDbModule,
-        MongooseModule.forFeature([{ name: Book.name, schema: BookSchema }])
+        MongooseModule.forFeature([{ name: Book.name, schema: BookSchema }]),
+        CaslModule
       ],
       providers: [BooksService],
     }).compile();
@@ -42,30 +49,42 @@ describe('BooksService', () => {
       const createBookDto = {
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockAdminUser.id,
       };
 
       const book = await service.create(createBookDto);
 
       expect(book.title).toBe(createBookDto.title);
       expect(book.author).toBe(createBookDto.author);
+      expect(book.authorId).toBe(createBookDto.authorId);
       expect(book._id).toBeDefined();
     });
   });
 
   describe('findAll', () => {
-    it('should return an array of books', async () => {
+    it('should return an array of books for admin user', async () => {
       const books = [
-        { title: 'Book 1', author: 'Author 1' },
-        { title: 'Book 2', author: 'Author 2' },
+        { title: 'Book 1', author: 'Author 1', authorId: mockAdminUser.id },
+        { title: 'Book 2', author: 'Author 2', authorId: mockAdminUser.id },
       ];
 
       const savedBooks = await model.create(books);
       expect(savedBooks).toBeDefined();
 
-      const result = await service.findAll();
+      const result = await service.findAll(mockAdminUser);
       expect(result).toHaveLength(2);
-      expect(result[0].title).toBe('Book 1');
-      expect(result[1].title).toBe('Book 2');
+      expect(result?.[0].title).toBe('Book 1');
+      expect(result?.[1].title).toBe('Book 2');
+    });
+
+    it('should return an empty array for unauthorized user', async () => {
+      const unauthorizedUser = {
+        id: '2',
+        isAdmin: false,
+      };
+
+      const result = await service.findAll(unauthorizedUser);
+      expect(result).toEqual([]);
     });
   });
 
@@ -74,6 +93,7 @@ describe('BooksService', () => {
       const book = await model.create({
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockAdminUser.id,
       });
 
       const found = await service.findOne(book._id.toString());
@@ -94,6 +114,7 @@ describe('BooksService', () => {
       const book = await model.create({
         title: 'Old Title',
         author: 'Old Author',
+        authorId: mockAdminUser.id,
       });
 
       const updateBookDto = {
@@ -108,6 +129,7 @@ describe('BooksService', () => {
 
       expect(updated.title).toBe('New Title');
       expect(updated.author).toBe('New Author');
+      expect(updated.authorId).toBe(mockAdminUser.id);
     });
 
     it('should throw NotFoundException when book not found', async () => {
@@ -125,6 +147,7 @@ describe('BooksService', () => {
       const book = await model.create({
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockAdminUser.id,
       });
 
       const removed = await service.remove(book._id.toString());

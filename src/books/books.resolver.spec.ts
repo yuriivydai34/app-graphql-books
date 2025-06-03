@@ -15,6 +15,15 @@ describe('BooksResolver', () => {
     remove: jest.fn(),
   };
 
+  const mockContext = {
+    req: {
+      user: {
+        id: '1',
+        isAdmin: true
+      }
+    }
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,12 +48,14 @@ describe('BooksResolver', () => {
       const createBookInput = {
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockContext.req.user.id,
       };
 
       const expectedBook = {
         _id: new Types.ObjectId().toString(),
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockContext.req.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -64,6 +75,7 @@ describe('BooksResolver', () => {
           _id: new Types.ObjectId().toString(),
           title: 'Book 1',
           author: 'Author 1',
+          authorId: mockContext.req.user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -71,6 +83,7 @@ describe('BooksResolver', () => {
           _id: new Types.ObjectId().toString(),
           title: 'Book 2',
           author: 'Author 2',
+          authorId: mockContext.req.user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -78,9 +91,26 @@ describe('BooksResolver', () => {
 
       mockBooksService.findAll.mockResolvedValue(expectedBooks);
 
-      const result = await resolver.findAll();
+      const result = await resolver.findAll(mockContext.req);
       expect(result).toEqual(expectedBooks);
-      expect(mockBooksService.findAll).toHaveBeenCalled();
+      expect(mockBooksService.findAll).toHaveBeenCalledWith(mockContext.req.user);
+    });
+
+    it('should handle unauthorized access', async () => {
+      const unauthorizedContext = {
+        req: {
+          user: {
+            id: '2',
+            isAdmin: false
+          }
+        }
+      };
+
+      mockBooksService.findAll.mockResolvedValue([]);
+
+      const result = await resolver.findAll(unauthorizedContext.req);
+      expect(result).toEqual([]);
+      expect(mockBooksService.findAll).toHaveBeenCalledWith(unauthorizedContext.req.user);
     });
   });
 
@@ -91,6 +121,7 @@ describe('BooksResolver', () => {
         _id: bookId,
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockContext.req.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -115,6 +146,7 @@ describe('BooksResolver', () => {
       const expectedBook = {
         _id: bookId,
         ...updateBookInput,
+        authorId: mockContext.req.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -137,6 +169,7 @@ describe('BooksResolver', () => {
         _id: bookId,
         title: 'Test Book',
         author: 'Test Author',
+        authorId: mockContext.req.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

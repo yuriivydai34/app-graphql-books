@@ -20,7 +20,7 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().sort({ username: 1 }).exec();
   }
 
   async findOne(username: string): Promise<User | null> {

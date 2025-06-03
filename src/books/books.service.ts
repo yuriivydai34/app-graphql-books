@@ -19,13 +19,13 @@ export class BooksService {
     return createdBook.save();
   }
 
-  async findAll(user: any): Promise<Book[] | null> {
+  async findAll(user: any): Promise<Book[]> {
     const ability = this.caslAbilityFactory.createForUser(user);
     if (ability.can(Action.Read, 'all')) {
       // "user" has read access to everything
       return this.bookModel.find().exec();
     }
-    return null;
+    return [];
   }
 
   async findOne(id: string): Promise<Book | null> {
