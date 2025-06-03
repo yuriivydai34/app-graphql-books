@@ -9,8 +9,14 @@ type Book {
   """The author of the book"""
   author: String!
 
+  """The ID of the author of the book"""
+  authorId: String!
+
   """Timestamp of when the book was added to the system"""
   createdAt: DateTime!
+
+  """Whether the book is published"""
+  isPublished: Boolean!
 
   """The title of the book"""
   title: String!
@@ -98,6 +104,9 @@ type User {
 
   """Timestamp of when the user account was created"""
   createdAt: DateTime!
+
+  """Whether the user is an admin"""
+  isAdmin: Boolean!
 
   """Timestamp of when the user account was last updated"""
   updatedAt: DateTime!

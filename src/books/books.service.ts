@@ -5,18 +5,27 @@ import { UpdateBookInput } from './dto/update-book.input';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Book } from './schemas/book.schema';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
+import { Action } from 'src/casl/action';
 
 @Injectable()
 export class BooksService {
-  constructor(@InjectModel(Book.name) private bookModel: Model<Book>) {}
+  constructor(
+    @InjectModel(Book.name) private bookModel: Model<Book>, 
+    private caslAbilityFactory: CaslAbilityFactory) {}
 
   async create(createBookInput: CreateBookInput): Promise<Book> {
     const createdBook = new this.bookModel(createBookInput);
     return createdBook.save();
   }
 
-  async findAll(): Promise<Book[]> {
-    return this.bookModel.find().exec();
+  async findAll(user: any): Promise<Book[] | null> {
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (ability.can(Action.Read, 'all')) {
+      // "user" has read access to everything
+      return this.bookModel.find().exec();
+    }
+    return null;
   }
 
   async findOne(id: string): Promise<Book | null> {

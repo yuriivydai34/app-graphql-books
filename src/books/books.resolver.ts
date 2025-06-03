@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Context } from '@nestjs/graphql';
 import { BooksService } from './books.service';
 import { Book } from './schemas/book.schema';
 import { CreateBookInput } from './dto/create-book.input';
@@ -14,8 +14,8 @@ export class BooksResolver {
   }
 
   @Query(() => [Book], { name: 'books' })
-  findAll() {
-    return this.booksService.findAll();
+  findAll(@Context('req') request: any) {
+    return this.booksService.findAll(request.user);
   }
 
   @Query(() => Book, { name: 'book' })

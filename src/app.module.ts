@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { BooksModule } from './books/books.module';
 import { join } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     AuthModule,
     UsersModule,
     BooksModule,
+    CaslModule,
   ],
   controllers: [AppController],
   providers: [AppService],

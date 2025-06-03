@@ -21,6 +21,14 @@ export class Book extends Document {
 
   @Field(() => Date, { description: 'Timestamp of when the book was last updated' })
   updatedAt: Date;
+
+  @Field(() => Boolean, { description: 'Whether the book is published' })
+  @Prop({ default: false })
+  isPublished: boolean;
+
+  @Field(() => String, { description: 'The ID of the author of the book' })
+  @Prop({ required: true })
+  authorId: string;
 }
 
 export const BookSchema = SchemaFactory.createForClass(Book);

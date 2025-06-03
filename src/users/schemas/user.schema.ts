@@ -20,6 +20,9 @@ export class User extends Document {
 
   @Field(() => Date, { description: 'Timestamp of when the user account was last updated' })
   updatedAt: Date;
+
+  @Field(() => Boolean, { description: 'Whether the user is an admin' })
+  isAdmin: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
