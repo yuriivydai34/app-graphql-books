@@ -12,8 +12,32 @@ import { join } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CaslModule } from './casl/casl.module';
 
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
+import * as WinstonGraylog2 from 'winston-graylog2';
+
 @Module({
   imports: [
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console(),
+        new WinstonGraylog2({
+          name: 'Graylog',
+          level: 'info',
+          silent: false,
+          handleExceptions: true,
+          graylog: {
+            servers: [{ host: '192.168.0.234', port: 12201 }],
+            hostname: 'nest-app',
+            facility: 'nest-graylog',
+            bufferSize: 1400,
+          },
+          staticMeta: {
+            env: process.env.NODE_ENV || 'development',
+          },
+        }),
+      ],
+    }),
     MongooseModule.forRoot('mongodb://user1:pwd123@192.168.0.234:27017/mydb1'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
