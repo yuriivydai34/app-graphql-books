@@ -15,6 +15,7 @@ export class UsersService {
     const createdUser = new this.userModel({
       ...createUserInput,
       password: hashedPassword,
+      isAdmin: false,
     });
     return createdUser.save();
   }

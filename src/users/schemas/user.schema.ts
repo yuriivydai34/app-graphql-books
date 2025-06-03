@@ -22,6 +22,7 @@ export class User extends Document {
   updatedAt: Date;
 
   @Field(() => Boolean, { description: 'Whether the user is an admin' })
+  @Prop({ default: false })
   isAdmin: boolean;
 }
 
