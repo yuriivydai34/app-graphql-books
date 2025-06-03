@@ -27,7 +27,7 @@ import * as WinstonGraylog2 from 'winston-graylog2';
           silent: false,
           handleExceptions: true,
           graylog: {
-            servers: [{ host: '192.168.0.234', port: 12201 }],
+            servers: [{ host: 'localhost', port: 12201 }],
             hostname: 'nest-app',
             facility: 'nest-graylog',
             bufferSize: 1400,
@@ -38,7 +38,7 @@ import * as WinstonGraylog2 from 'winston-graylog2';
         }),
       ],
     }),
-    MongooseModule.forRoot('mongodb://user1:pwd123@192.168.0.234:27017/mydb1'),
+    MongooseModule.forRoot('mongodb://user1:pwd123@localhost:27017/mydb1'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       graphiql: true,
