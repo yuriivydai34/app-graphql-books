@@ -4,6 +4,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { Types } from 'mongoose';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
@@ -52,15 +53,17 @@ describe('AuthService', () => {
   describe('signIn', () => {
     it('should return access token when credentials are valid', async () => {
       const mockUser = {
-        id: 1,
+        _id: new Types.ObjectId().toString(),
         username: 'testuser',
         password: 'hashedPassword',
+        isAdmin: true,
       };
 
       const expectedToken = 'jwt-token';
       const expectedPayload = {
-        sub: mockUser.id,
+        sub: mockUser._id,
         username: mockUser.username,
+        isAdmin: mockUser.isAdmin,
       };
 
       mockUsersService.findOne.mockResolvedValue(mockUser);
@@ -87,9 +90,10 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException when password is incorrect', async () => {
       const mockUser = {
-        id: 1,
+        _id: new Types.ObjectId().toString(),
         username: 'testuser',
         password: 'hashedPassword',
+        isAdmin: false,
       };
 
       mockUsersService.findOne.mockResolvedValue(mockUser);

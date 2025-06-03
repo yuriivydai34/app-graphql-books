@@ -23,7 +23,7 @@ export class BooksService {
     const ability = this.caslAbilityFactory.createForUser(user);
     if (ability.can(Action.Read, 'all')) {
       // "user" has read access to everything
-      return this.bookModel.find().exec();
+      return this.bookModel.find().sort({ title: 1 }).exec();
     }
     return [];
   }

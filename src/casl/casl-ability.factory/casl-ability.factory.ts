@@ -10,7 +10,7 @@ export type AppAbility = MongoAbility<[Action, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForUser(user: User) {
+  createForUser(user: any) {
     const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
 
     if (user.isAdmin) {
@@ -19,7 +19,7 @@ export class CaslAbilityFactory {
       can(Action.Read, 'all'); // read-only access to everything
     }
 
-    can(Action.Update, Book, { authorId: user.id });
+    can(Action.Update, Book, { authorId: user.sub }); // use sub from JWT payload
     cannot(Action.Delete, Book, { isPublished: true });
 
     return build({
