@@ -3,6 +3,8 @@ import { BooksService } from './books.service';
 import { Book } from './schemas/book.schema';
 import { CreateBookInput } from './dto/create-book.input';
 import { UpdateBookInput } from './dto/update-book.input';
+import { PaginatedBooks } from './dto/paginated-books.output';
+import { PaginationArgs } from './dto/pagination.args';
 
 @Resolver(() => Book)
 export class BooksResolver {
@@ -13,9 +15,12 @@ export class BooksResolver {
     return this.booksService.create(createBookInput);
   }
 
-  @Query(() => [Book], { name: 'books' })
-  findAll(@Context('req') request: any) {
-    return this.booksService.findAll(request.user);
+  @Query(() => PaginatedBooks, { name: 'books', description: 'Get a paginated list of books' })
+  findAll(
+    @Context('req') request: any,
+    @Args() paginationArgs: PaginationArgs
+  ): Promise<PaginatedBooks> {
+    return this.booksService.findAll(paginationArgs, request.user);
   }
 
   @Query(() => Book, { name: 'book' })

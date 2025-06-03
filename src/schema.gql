@@ -71,9 +71,33 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
+type PaginatedBooks {
+  data: [Book!]!
+  links: PaginationLinks!
+  meta: PaginationMeta!
+}
+
+type PaginationLinks {
+  current: String!
+}
+
+type PaginationMeta {
+  currentPage: Float!
+  filter: String
+  itemsPerPage: Float!
+  search: String!
+  searchBy: [String!]!
+  select: [String!]!
+  sortBy: [[String!]!]!
+  totalItems: Float!
+  totalPages: Float!
+}
+
 type Query {
   book(id: ID!): Book!
-  books: [Book!]!
+
+  """Get a paginated list of books"""
+  books(filter: String, limit: Int = 10, page: Int = 1, search: String, sortBy: String, sortOrder: String): PaginatedBooks!
   profile: UserProfile!
   user(id: ID!): User!
   users: [User!]!
