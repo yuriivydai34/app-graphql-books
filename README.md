@@ -1,98 +1,241 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# GraphQL Books API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A modern GraphQL API built with NestJS for managing books and users. This API provides comprehensive functionality for book management with features like pagination, sorting, filtering, and user authentication.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- **GraphQL API**: Modern API built with NestJS and Apollo Server
+- **Authentication**: JWT-based authentication with bcrypt password hashing
+- **Authorization**: Role-based access control using CASL
+- **Database**: MongoDB integration with Mongoose ODM
+- **Pagination**: Advanced pagination with sorting, filtering, and searching
+- **Logging**: Comprehensive logging system for debugging and monitoring
+- **Testing**: Full test coverage with Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Project Structure
 
-## Project setup
-
-```bash
-$ yarn install
+```
+src/
+├── app.module.ts              # Main application module
+├── main.ts                    # Application entry point
+├── schema.gql                 # Generated GraphQL schema
+├── auth/                      # Authentication module
+│   ├── auth.guard.ts         # JWT authentication guard
+│   ├── auth.module.ts        # Auth module configuration
+│   ├── auth.resolver.ts      # Auth GraphQL resolvers
+│   ├── auth.service.ts       # Auth business logic
+│   ├── constants.ts          # Auth constants (JWT config)
+│   ├── decorator.ts          # Custom decorators
+│   └── dto/                  # Auth data transfer objects
+├── books/                     # Books module
+│   ├── books.module.ts       # Books module configuration
+│   ├── books.resolver.ts     # Books GraphQL resolvers
+│   ├── books.service.ts      # Books business logic
+│   ├── dto/                  # Books DTOs (inputs/outputs)
+│   │   ├── create-book.input.ts
+│   │   ├── update-book.input.ts
+│   │   ├── pagination.args.ts
+│   │   └── paginated-books.output.ts
+│   └── schemas/              # Mongoose schemas
+│       └── book.schema.ts
+├── users/                     # Users module
+│   ├── users.module.ts       # Users module configuration
+│   ├── users.resolver.ts     # Users GraphQL resolvers
+│   ├── users.service.ts      # Users business logic
+│   ├── dto/                  # Users DTOs
+│   └── schemas/              # User Mongoose schema
+├── casl/                      # Authorization module
+│   ├── casl-ability.factory/ # CASL ability definitions
+│   ├── action.ts             # Action types
+│   └── casl.module.ts        # CASL module configuration
+└── test/                      # Testing utilities
 ```
 
-## Compile and run the project
+### Key Components
+
+- **App Module**: Root module that ties everything together
+- **Auth Module**: Handles user authentication and JWT operations
+- **Books Module**: Core functionality for book management
+  - Resolver: GraphQL query/mutation handlers
+  - Service: Business logic and database operations
+  - DTOs: Data transfer objects for input/output
+  - Schema: MongoDB data model
+- **Users Module**: User management functionality
+- **CASL Module**: Role-based access control implementation
+
+### Module Dependencies
+
+```
+App Module
+├── Auth Module
+│   └── Users Module
+├── Books Module
+│   └── CASL Module
+└── Users Module
+    └── CASL Module
+```
+
+## Prerequisites
+
+- Node.js (v14 or higher)
+- MongoDB (v4.4 or higher)
+- Yarn package manager
+
+## Installation
 
 ```bash
-# development
-$ yarn run start
+# Install dependencies
+$ yarn install
 
-# watch mode
+# Set up environment variables
+$ cp .env.example .env
+```
+
+Update the `.env` file with your MongoDB connection string and JWT secret.
+
+## Running the Application
+
+```bash
+# Development mode
 $ yarn run start:dev
 
-# production mode
+# Production mode
 $ yarn run start:prod
 ```
 
-## Run tests
+The GraphQL playground will be available at `http://localhost:3000/graphql`
+
+## API Documentation
+
+### Authentication
+
+The API uses JWT tokens for authentication. To get started:
+
+1. Create a user account using the `createUser` mutation
+2. Sign in using the `signIn` mutation to get an access token
+3. Include the token in your requests using the Authorization header:
+   ```
+   Authorization: Bearer your-token-here
+   ```
+
+### Books API
+
+#### Queries
+
+- `books(pagination: PaginationArgs)`: Get a paginated list of books
+  - Supports sorting, filtering, and searching
+  - Returns metadata about the current page and total items
+
+- `book(id: ID!)`: Get a single book by ID
+
+#### Mutations
+
+- `createBook(input: CreateBookInput!)`: Create a new book
+- `updateBook(input: UpdateBookInput!)`: Update an existing book
+- `removeBook(id: ID!)`: Delete a book
+
+#### Pagination Features
+
+The books query supports advanced pagination with:
+- Page-based navigation
+- Configurable items per page
+- Sorting by any field (ASC/DESC)
+- Case-insensitive search across title and author
+- JSON-based filtering
+- Comprehensive metadata about the current page
+
+Example query:
+```graphql
+query {
+  books(
+    page: 1
+    limit: 10
+    sortBy: "title"
+    sortOrder: ASC
+    search: "fantasy"
+    filter: "{\"author\":\"Tolkien\"}"
+  ) {
+    data {
+      id
+      title
+      author
+      createdAt
+    }
+    meta {
+      currentPage
+      totalPages
+      itemsPerPage
+      totalItems
+    }
+  }
+}
+```
+
+### Users API
+
+#### Queries
+
+- `users`: Get all users (admin only)
+- `user(id: ID!)`: Get a single user by ID
+
+#### Mutations
+
+- `createUser(input: CreateUserInput!)`: Register a new user
+- `updateUser(input: UpdateUserInput!)`: Update user details
+- `removeUser(id: ID!)`: Delete a user account
+
+## Testing
 
 ```bash
-# unit tests
+# Unit tests
 $ yarn run test
 
-# e2e tests
+# E2E tests
 $ yarn run test:e2e
 
-# test coverage
+# Test coverage
 $ yarn run test:cov
 ```
 
-## Deployment
+## Logging
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The application includes comprehensive logging with different log levels:
+- `error`: For error conditions
+- `warn`: For warning conditions
+- `log`: For general information
+- `debug`: For debugging information
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Logs include:
+- User authentication attempts
+- CRUD operations on books and users
+- Pagination and filtering details
+- Authorization checks
 
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
+## Error Handling
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The API implements proper error handling with:
+- Validation errors for invalid inputs
+- Authentication/Authorization errors
+- Not Found errors for missing resources
+- Proper error messages and codes
 
-## Resources
+## Security Features
 
-Check out a few resources that may come in handy when working with NestJS:
+- Password hashing using bcrypt
+- JWT-based authentication
+- Role-based access control
+- Input validation and sanitization
+- MongoDB injection protection
+- Rate limiting (optional)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Contributing
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the MIT License - see the LICENSE file for details.
