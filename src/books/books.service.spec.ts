@@ -8,6 +8,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BookSchema } from './schemas/book.schema';
 import { NotFoundException } from '@nestjs/common';
 import { CaslModule } from '../casl/casl.module';
+import { PaginationArgs } from './dto/pagination.args';
 
 describe('BooksService', () => {
   let service: BooksService;
@@ -16,6 +17,13 @@ describe('BooksService', () => {
   const mockAdminUser = {
     id: '1',
     isAdmin: true,
+  };
+
+  const defaultPaginationArgs: PaginationArgs = {
+    page: 1,
+    limit: 10,
+    sortBy: 'title',
+    sortOrder: 'ASC'
   };
 
   beforeEach(async () => {
@@ -62,7 +70,7 @@ describe('BooksService', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of books for admin user', async () => {
+    it('should return paginated books for admin user', async () => {
       const books = [
         { title: 'Book 1', author: 'Author 1', authorId: mockAdminUser.id },
         { title: 'Book 2', author: 'Author 2', authorId: mockAdminUser.id },
@@ -71,10 +79,13 @@ describe('BooksService', () => {
       const savedBooks = await model.create(books);
       expect(savedBooks).toBeDefined();
 
-      const result = await service.findAll(mockAdminUser);
-      expect(result).toHaveLength(2);
-      expect(result?.[0].title).toBe('Book 1');
-      expect(result?.[1].title).toBe('Book 2');
+      const result = await service.findAll(defaultPaginationArgs, mockAdminUser);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].title).toBe('Book 1');
+      expect(result.data[1].title).toBe('Book 2');
+      expect(result.meta.totalItems).toBe(2);
+      expect(result.meta.currentPage).toBe(1);
+      expect(result.meta.totalPages).toBe(1);
     });
 
     it('should return an empty array for unauthorized user', async () => {
@@ -83,8 +94,53 @@ describe('BooksService', () => {
         isAdmin: false,
       };
 
-      const result = await service.findAll(unauthorizedUser);
-      expect(result).toEqual([]);
+      const result = await service.findAll(defaultPaginationArgs, unauthorizedUser);
+      expect(result.data).toEqual([]);
+      expect(result.meta.totalItems).toBe(0);
+      expect(result.meta.currentPage).toBe(1);
+      expect(result.meta.totalPages).toBe(0);
+    });
+
+    it('should handle search parameter', async () => {
+      const books = [
+        { title: 'First Book', author: 'Author 1', authorId: mockAdminUser.id },
+        { title: 'Second Book', author: 'Author 2', authorId: mockAdminUser.id },
+        { title: 'Third Book', author: 'Special Author', authorId: mockAdminUser.id },
+      ];
+
+      await model.create(books);
+
+      const searchArgs: PaginationArgs = {
+        ...defaultPaginationArgs,
+        search: 'Special'
+      };
+
+      const result = await service.findAll(searchArgs, mockAdminUser);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].author).toBe('Special Author');
+      expect(result.meta.totalItems).toBe(1);
+    });
+
+    it('should handle sorting', async () => {
+      const books = [
+        { title: 'C Book', author: 'Author 1', authorId: mockAdminUser.id },
+        { title: 'A Book', author: 'Author 2', authorId: mockAdminUser.id },
+        { title: 'B Book', author: 'Author 3', authorId: mockAdminUser.id },
+      ];
+
+      await model.create(books);
+
+      const sortArgs: PaginationArgs = {
+        ...defaultPaginationArgs,
+        sortBy: 'title',
+        sortOrder: 'DESC'
+      };
+
+      const result = await service.findAll(sortArgs, mockAdminUser);
+      expect(result.data).toHaveLength(3);
+      expect(result.data[0].title).toBe('C Book');
+      expect(result.data[1].title).toBe('B Book');
+      expect(result.data[2].title).toBe('A Book');
     });
   });
 

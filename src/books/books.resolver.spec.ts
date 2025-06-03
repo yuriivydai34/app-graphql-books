@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BooksResolver } from './books.resolver';
 import { BooksService } from './books.service';
 import { Types } from 'mongoose';
+import { PaginationArgs } from './dto/pagination.args';
 
 describe('BooksResolver', () => {
   let resolver: BooksResolver;
@@ -22,6 +23,13 @@ describe('BooksResolver', () => {
         isAdmin: true
       }
     }
+  };
+
+  const defaultPaginationArgs: PaginationArgs = {
+    page: 1,
+    limit: 10,
+    sortBy: 'title',
+    sortOrder: 'ASC'
   };
 
   beforeEach(async () => {
@@ -69,31 +77,47 @@ describe('BooksResolver', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of books', async () => {
-      const expectedBooks = [
-        {
-          _id: new Types.ObjectId().toString(),
-          title: 'Book 1',
-          author: 'Author 1',
-          authorId: mockContext.req.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+    it('should return paginated books for admin user', async () => {
+      const expectedBooks = {
+        data: [
+          {
+            _id: new Types.ObjectId().toString(),
+            title: 'Book 1',
+            author: 'Author 1',
+            authorId: mockContext.req.user.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            _id: new Types.ObjectId().toString(),
+            title: 'Book 2',
+            author: 'Author 2',
+            authorId: mockContext.req.user.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 2,
+          currentPage: 1,
+          totalPages: 1,
+          sortBy: [['title', 'ASC']],
+          searchBy: ['title', 'author'],
+          search: '',
+          select: ['title', 'author', 'createdAt'],
+          filter: ''
         },
-        {
-          _id: new Types.ObjectId().toString(),
-          title: 'Book 2',
-          author: 'Author 2',
-          authorId: mockContext.req.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
+        links: {
+          current: ''
+        }
+      };
 
       mockBooksService.findAll.mockResolvedValue(expectedBooks);
 
-      const result = await resolver.findAll(mockContext.req);
+      const result = await resolver.findAll(mockContext.req, defaultPaginationArgs);
       expect(result).toEqual(expectedBooks);
-      expect(mockBooksService.findAll).toHaveBeenCalledWith(mockContext.req.user);
+      expect(mockBooksService.findAll).toHaveBeenCalledWith(defaultPaginationArgs, mockContext.req.user);
     });
 
     it('should handle unauthorized access', async () => {
@@ -106,11 +130,29 @@ describe('BooksResolver', () => {
         }
       };
 
-      mockBooksService.findAll.mockResolvedValue([]);
+      const expectedResponse = {
+        data: [],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 0,
+          currentPage: 1,
+          totalPages: 0,
+          sortBy: [['title', 'ASC']],
+          searchBy: ['title', 'author'],
+          search: '',
+          select: ['title', 'author', 'createdAt'],
+          filter: ''
+        },
+        links: {
+          current: ''
+        }
+      };
 
-      const result = await resolver.findAll(unauthorizedContext.req);
-      expect(result).toEqual([]);
-      expect(mockBooksService.findAll).toHaveBeenCalledWith(unauthorizedContext.req.user);
+      mockBooksService.findAll.mockResolvedValue(expectedResponse);
+
+      const result = await resolver.findAll(unauthorizedContext.req, defaultPaginationArgs);
+      expect(result).toEqual(expectedResponse);
+      expect(mockBooksService.findAll).toHaveBeenCalledWith(defaultPaginationArgs, unauthorizedContext.req.user);
     });
   });
 
