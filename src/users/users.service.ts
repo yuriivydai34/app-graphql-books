@@ -1,14 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
+import { Action } from 'src/casl/action';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private caslAbilityFactory: CaslAbilityFactory
+  ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
     const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
@@ -32,7 +37,13 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
-  async update(id: string, updateUserInput: UpdateUserInput): Promise<User> {
+  async update(id: string, updateUserInput: UpdateUserInput, currentUser: User): Promise<User> {
+    const ability = this.caslAbilityFactory.createForUser(currentUser);
+    
+    if (!ability.can(Action.Update, User)) {
+      throw new ForbiddenException('You do not have permission to update users');
+    }
+
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);

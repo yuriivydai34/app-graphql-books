@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Context } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './schemas/user.schema';
 import { CreateUserInput } from './dto/create-user.input';
@@ -31,8 +31,11 @@ export class UsersResolver {
 
   @UseGuards(AuthGuard)
   @Mutation(() => User)
-  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
-    return this.usersService.update(updateUserInput.id, updateUserInput);
+  updateUser(
+    @Args('updateUserInput') updateUserInput: UpdateUserInput,
+    @Context('req') request: any,
+  ) {
+    return this.usersService.update(updateUserInput.id, updateUserInput, request.user);
   }
 
   @UseGuards(AuthGuard)
