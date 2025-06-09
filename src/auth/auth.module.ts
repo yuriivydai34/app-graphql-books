@@ -13,7 +13,7 @@ import { AuthResolver } from './auth.resolver';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '600s' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '1h' }, // Default to 1 hour if not set
     }),
   ],
   providers: [

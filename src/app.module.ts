@@ -38,7 +38,7 @@ import * as WinstonGraylog2 from 'winston-graylog2';
         }),
       ],
     }),
-    MongooseModule.forRoot('mongodb://user1:pwd123@localhost:27017/mydb1'),
+    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/nest-app'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       graphiql: true,
